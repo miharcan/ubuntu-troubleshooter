@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="Ubuntu Troubleshooting Helper")
 
@@ -11,6 +13,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+API_KEY = os.getenv("API_KEY")
+
+@app.post("/diagnose")
+def diagnose_issue(payload: Input, x_api_key: str = Header(None)):
+    if API_KEY and x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return diagnose(payload.text)
+
 
 class Input(BaseModel):
     text: str
