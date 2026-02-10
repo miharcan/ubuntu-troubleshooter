@@ -1,7 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Ubuntu Troubleshooting Helper")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   # OK for demo; we can tighten later
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class Input(BaseModel):
     text: str
@@ -88,9 +97,17 @@ def diagnose(text: str):
     }
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+@app.get("/")
+def root():
+    return {
+        "service": "ubuntu-troubleshooter",
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "diagnose": "/diagnose"
+        }
+    }
+
 
 @app.post("/diagnose")
 def diagnose_issue(payload: Input):
